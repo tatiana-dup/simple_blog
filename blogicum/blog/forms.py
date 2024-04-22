@@ -17,7 +17,7 @@ class ProfileEditForm(UserChangeForm):
 
 class PostCreateForm(forms.ModelForm):
     """Форма для создания и редактирования поста."""
-    
+
     class Meta:
         model = Post
         exclude = ('author', 'is_published')
