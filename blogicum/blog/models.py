@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 
 
 # Допустимая длина для полей-строк в моделях.
@@ -104,6 +105,9 @@ class Post(BaseModel):
     def __str__(self):
         return self.title[:LIMIT_STRING_DISPLAYED]
 
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'post_id': self.pk})
+
 
 class Comment(models.Model):
     created_at = models.DateTimeField(
@@ -129,4 +133,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return (f'Комментарий от {self.author.username} '
-                f'к посту {self.title[:LIMIT_STRING_DISPLAYED]}')
+                f'к посту {self.post.title[:LIMIT_STRING_DISPLAYED]}')
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'post_id': self.post.pk})

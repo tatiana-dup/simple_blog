@@ -1,10 +1,9 @@
 from django.conf import settings
-from django.conf.urls import handler404
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth.forms import UserCreationForm
-from django.urls import include, path, reverse_lazy
-from django.views.generic.edit import CreateView
+from django.urls import include, path
+
+from blog import views
 
 
 urlpatterns = [
@@ -14,11 +13,7 @@ urlpatterns = [
     path('auth/', include('django.contrib.auth.urls')),
     path(
         'auth/registration/',
-        CreateView.as_view(
-            template_name='registration/registration_form.html',
-            form_class=UserCreationForm,
-            success_url=reverse_lazy('blog:index'),
-        ),
+        views.UserCreateView.as_view(),
         name='registration',
     ),
 ]

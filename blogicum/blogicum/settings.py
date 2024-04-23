@@ -156,3 +156,6 @@ USE_L10N = False
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 # Директория для хранения файлов писем.
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+
+# Количество постов для выдачи на странице.
+POST_LIMIT_FOR_PAGINATE = 10

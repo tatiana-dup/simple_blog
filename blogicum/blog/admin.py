@@ -1,10 +1,32 @@
 from django.contrib import admin
 
-from .models import Category, Location, Post
+from .models import Category, Comment, Location, Post
+
+
+class PostInline(admin.StackedInline):
+    """Класс для вставки списка постов на страницы админ-панели."""
+
+    model = Post
+    extra = 0
+    fields = ['title', 'is_published', 'text', 'pub_date']
+    readonly_fields = ['title', 'text', 'pub_date']
+    list_display_links = ('title',)
+
+
+class CommentInline(admin.StackedInline):
+    """Класс для вставки списка комментариев на страницы админ-панели."""
+
+    model = Comment
+    extra = 0
+    readonly_fields = ['text', 'author']
 
 
 class PostAdmin(admin.ModelAdmin):
     """Класс с настройками страницы постов в админ-панели."""
+
+    inlines = (
+        CommentInline,
+    )
 
     list_display = (
         'title',
@@ -20,16 +42,6 @@ class PostAdmin(admin.ModelAdmin):
         'category',
         'location',
         'author')
-
-
-class PostInline(admin.StackedInline):
-    """Класс для вставки списка постов на страницы админ-панели."""
-
-    model = Post
-    extra = 0
-    fields = ['title', 'is_published', 'text', 'pub_date']
-    readonly_fields = ['title', 'text', 'pub_date']
-    list_display_links = ('title',)
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -63,5 +75,6 @@ class LocationAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Post, PostAdmin)
+admin.site.register(Comment)
 
 admin.site.empty_value_display = 'Не задано'
