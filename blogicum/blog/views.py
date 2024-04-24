@@ -1,7 +1,7 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Manager
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -9,39 +9,10 @@ from django.utils import timezone
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView)
 
-from blogicum.settings import POST_LIMIT_FOR_PAGINATE
-
 from .forms import CommentCreateForm, PostCreateForm, ProfileEditForm
 from .mixins import CommentMixin, PostAuthorRequiredMixin
 from .models import Category, Comment, Post
-
-
-def get_queryset_posts(
-        manager: Manager = Post.objects,
-        is_list_view=True,
-        is_filtred=True):
-    """Получает список постов по заданным параметрам."""
-    current_time = timezone.now()
-    posts = manager.select_related(
-        'author',
-        'category',
-        'location'
-    )
-    if is_list_view:
-        posts = posts.annotate(
-            comment_count=Count('comments')
-        ).order_by(
-            '-pub_date'
-        )
-
-    if is_filtred:
-        posts = posts.filter(
-            is_published=True,
-            pub_date__lte=current_time,
-            category__is_published=True
-        )
-
-    return posts
+from .utils import get_queryset_posts
 
 
 class PostListView(ListView):
@@ -51,7 +22,7 @@ class PostListView(ListView):
     """
 
     template_name = 'blog/index.html'
-    paginate_by = POST_LIMIT_FOR_PAGINATE
+    paginate_by = settings.POST_LIMIT_FOR_PAGINATE
 
     def get_queryset(self):
         return get_queryset_posts()
@@ -90,13 +61,9 @@ class CategoryPostsListView(ListView):
     """Возвращает страницу с постами в выбранной категории."""
 
     template_name = 'blog/category.html'
-    paginate_by = POST_LIMIT_FOR_PAGINATE
+    paginate_by = settings.POST_LIMIT_FOR_PAGINATE
     slug_url_kwarg = 'category_slug'
 
-    # Андрей, если использовать функцию (если я все верно сделала, конечно),
-    # то у меня дважды делается запрос к БД на получение объекта категории.
-    # Именно поэтому я в первый раз решила использовать self.category
-    # (то же самое про остальные классы, где я такое делала)
     def get_category(self):
         return get_object_or_404(
             Category,
@@ -119,7 +86,7 @@ class ProfileListView(ListView):
     """
 
     template_name = 'blog/profile.html'
-    paginate_by = POST_LIMIT_FOR_PAGINATE
+    paginate_by = settings.POST_LIMIT_FOR_PAGINATE
     slug_url_kwarg = 'username'
 
     def get_author(self):
@@ -131,7 +98,7 @@ class ProfileListView(ListView):
         author = self.get_author()
 
         if self.request.user == author:
-            return get_queryset_posts(author.posts, is_filtred=False)
+            return get_queryset_posts(author.posts, add_filters=False)
         else:
             return get_queryset_posts(author.posts)
 
@@ -148,7 +115,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     form_class = ProfileEditForm
     template_name = 'blog/user.html'
 
-    def get_object(self, queryset=None):
+    def get_object(self):
         return self.request.user
 
     def get_success_url(self):
